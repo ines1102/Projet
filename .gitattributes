@@ -1,0 +1,4 @@
+*.edf filter=lfs diff=lfs merge=lfs -text
+*.fif filter=lfs diff=lfs merge=lfs -text
+VLA_VRW/*.edf filter=lfs diff=lfs merge=lfs -text
+VLA_VRW/*.fif filter=lfs diff=lfs merge=lfs -text
