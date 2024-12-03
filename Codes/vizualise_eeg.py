@@ -6,7 +6,7 @@ import plotly.subplots as sp
 import plotly.io as pio
 
 # Chemin vers ton fichier EEG (FIF ou EDF)
-file_path = "/Users/mac/Documents/ITS/S5/Dispositif médical (Labiod)/Projet/VLA_VRW/lab/EEG/fif_process/2_cleaned_filtered.fif"  # Remplace par ton fichier
+file_path = "/Users/mac/Documents/ITS/S5/Dispositif médical (Labiod)/Projet/VLA_VRW/lab/EEG/edf_cleaned/1_cleaned.edf"  # Remplace par ton fichier
 
 # Charger le fichier EEG
 if file_path.endswith('.fif'):
