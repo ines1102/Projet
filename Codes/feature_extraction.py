@@ -42,5 +42,5 @@ if __name__ == '__main__':
     parser.add_argument('--input', type=str, required=True, help="Fichier d'entrée des segments")
     parser.add_argument('--output', type=str, required=True, help="Fichier de sortie des caractéristiques")
     args = parser.parse_args()
-    
+    c
     process_features(args.input, args.output)
