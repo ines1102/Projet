@@ -96,7 +96,7 @@ python analysis.py --labo "features/labo_features.pkl" --reel "features/reel_fea
 │   │   │   ├── 1.mat
 │   │   │   ├── 2.mat
 │   │   │   ├── ...
-│   ├── reel/               
+│   ├── real/               
 │   │   ├── EEG/            # 14 fichiers .edf (EEG réel)
 │   │   ├── perclos/        # 14 fichiers .mat (PERCLOS réel)
 │   │   │   ├── 1.mat
