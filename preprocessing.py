@@ -15,10 +15,10 @@ def load_and_filter_eeg(file_path):
     raw.filter(1, 50)
     return raw
 
-def segment_data(raw, window_size=3, overlap=1.5):
+def segment_data(raw, window_size=3, overlap=0.5):
     fs = raw.info['sfreq']
     window_samples = int(window_size * fs)
-    step_samples = int(window_size * (1 - overlap) * fs)
+    step_samples = int(window_samples * (1 - overlap))
     data, times = raw[:, :]
     
     print(f"Fréquence d'échantillonnage: {fs}")
@@ -54,7 +54,7 @@ def process_data(lab_eeg_path, lab_perclos_path, real_eeg_path, real_perclos_pat
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
 
-    for data_type, eeg_folder, perclos_folder in [('labo', lab_eeg_path, lab_perclos_path), 
+    for data_type, eeg_folder, perclos_folder in [('lab', lab_eeg_path, lab_perclos_path), 
                                                   ('reel', real_eeg_path, real_perclos_path)]:
         print(f"\nTraitement des données {data_type}...")
         segments_all = []
@@ -88,9 +88,14 @@ def process_data(lab_eeg_path, lab_perclos_path, real_eeg_path, real_perclos_pat
 
         # Sauvegarde des segments et des labels dans un fichier .pkl
         output_path = os.path.join(output_folder, f"{data_type}_segments.pkl")
+
+        print(f"Vérification avant sauvegarde - Nombre total de segments: {len(segments_all)}, Nombre total de labels: {len(labels_all)}")
+
         with open(output_path, 'wb') as f:
             pickle.dump((segments_all, labels_all), f)
+
         print(f"Données sauvegardées dans {output_path}")
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Prétraitement des données EEG et PERCLOS")
