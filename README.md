@@ -1,17 +1,17 @@
 # Projet : Analyse EEG et PERCLOS pour Détection de Fatigue
 
-Ce projet analyse les signaux EEG collectés dans deux contextes (laboratoire et réel) et les associe aux labels PERCLOS correspondants. L’objectif est de comparer les performances des modèles prédictifs entre ces deux contextes et d’identifier les différences éventuelles.
+Ce projet a pour objectif d’analyser les signaux EEG collectés dans deux contextes distincts (laboratoire et réel) et de les associer aux labels PERCLOS correspondants. L’objectif principal est de comparer les performances des modèles prédictifs entre ces deux contextes afin d’identifier et d’expliquer les différences potentielles.
 
 ## Structure du projet
 
 ### 1. Données
 **Données laboratoire :**
-- 20 fichiers .edf contenant les signaux EEG.
-- 20 fichiers .mat contenant les labels PERCLOS (un fichier .mat par participant).
+- EEG : 20 fichiers .edf contenant les signaux EEG.
+- PERCLOS : 20 fichiers .mat contenant les labels (un fichier par participant).
 
 **Données réelles :**
-- 14 fichiers .edf contenant les signaux EEG.
-- 14 fichiers .mat contenant les labels PERCLOS (un fichier .mat par participant).
+- EEG : 14 fichiers .edf contenant les signaux EEG.
+- PERCLOS : 14 fichiers .mat contenant les labels (un fichier par participant).
 
 ### 2. Scripts
 
@@ -51,14 +51,17 @@ pip3 install mne numpy scipy matplotlib seaborn scikit-learn
 
 Exécutez le script **preprocessing.py** pour :
 1. Charger les fichiers .edf (EEG) et .mat (PERCLOS).
-2.	Appliquer les filtres (notch et passe-bande).
-3.	Découper les EEG en fenêtres de 3 secondes avec recouvrement.
-4.	Associer les fenêtres EEG aux labels PERCLOS.
+2. Appliquer les filtres (notch et passe-bande).
+3. Découper les EEG en fenêtres de 3 secondes avec recouvrement.
+4. Associer les fenêtres EEG aux labels PERCLOS.
 
 ```bash
-python preprocessing.py --lab_data "data/labo/" --lab_labels "data/labo_perclos.mat" \
-                        --real_data "data/reel/" --real_labels "data/reel_perclos.mat" \
-                        --output "processed/"
+python3 preprocessing.py \
+  --lab_data "../VLA_VRW/lab/EEG/" \
+  --lab_labels "../VLA_VRW/lab/perclos/" \
+  --real_data "../VLA_VRW/real/EEG/" \
+  --real_labels "../VLA_VRW/real/perclos/" \
+  --output "processed/"
 ```
 
 ### Étape 2 : Extraction des caractéristiques
@@ -90,43 +93,38 @@ python analysis.py --labo "features/labo_features.pkl" --reel "features/reel_fea
 ```bash
 📂 Projet_EEG
 ├── VLA_VRW/
-│   ├── labo/               
-│   │   ├── EEG/            # 20 fichiers .edf (EEG labo)
-│   │   ├── perclos/        # 20 fichiers .mat (PERCLOS labo)
-│   │   │   ├── 1.mat
-│   │   │   ├── 2.mat
-│   │   │   ├── ...
+│   ├── lab/               
+│   │   ├── EEG/            # 20 fichiers .edf représentant les données EEG en laboratoire.
+│   │   ├── perclos/        # 20 fichiers .mat représentant les labels PERCLOS.
 │   ├── real/               
-│   │   ├── EEG/            # 14 fichiers .edf (EEG réel)
-│   │   ├── perclos/        # 14 fichiers .mat (PERCLOS réel)
-│   │   │   ├── 1.mat
-│   │   │   ├── 2.mat
-│   │   │   ├── ...
-├── processed/
-│   ├── labo_segments.pkl   # Données segmentées (labo)
-│   ├── reel_segments.pkl   # Données segmentées (réel)
-├── features/
-│   ├── labo_features.pkl   # Caractéristiques extraites (labo)
-│   ├── reel_features.pkl   # Caractéristiques extraites (réel)
-├── results/
-│   ├── model_performance.json  # Résultats des modèles
-├── preprocessing.py       # Script de prétraitement
-├── feature_extraction.py  # Script d'extraction des caractéristiques
-├── model_training.py      # Script d'entraînement des modèles
-├── analysis.py            # Script d'analyse comparative
-├── README.md              # Documentation du projet
+│   │   ├── EEG/            # 14 fichiers .edf représentant les données EEG en situation réelle.
+│   │   ├── perclos/        # 14 fichiers .mat représentant les labels PERCLOS.
+├── Github/
+│   ├── processed/    
+│   │   ├── labo_segments.pkl   # Données EEG segmentées (laboratoire).
+│   │   ├── reel_segments.pkl   # Données EEG segmentées (réel).
+│   ├── features/
+│   │   ├── labo_features.pkl   # Caractéristiques extraites des données laboratoire.
+│   │   ├── reel_features.pkl   # Caractéristiques extraites des données réelles.
+│   ├── results/
+│   │   ├── model_performance.json  # Résultats des performances des modèles.
+│   ├── preprocessing.py       # Script de prétraitement des données brutes.
+│   ├── feature_extraction.py  # Script pour extraire les caractéristiques des EEG.
+│   ├── model_training.py      # Script d'entraînement et de validation des modèles.
+│   ├── analysis.py            # Script pour l'analyse comparative entre labo et réel.
+│   ├── README.md              # Documentation détaillée du projet.
 ```
 
 ## Résultats attendus
 
 ### 1. Comparaison labo vs réel
-Différences entre les caractéristiques extraites (variance, puissance dans les bandes alpha/beta).
-Visualisation des distributions via des boxplots ou histogrammes.
+- Identifier les différences entre les caractéristiques extraites (variance, puissance dans les bandes alpha/beta).
+- Visualiser les distributions des caractéristiques via des boxplots ou histogrammes.
 
 ### 2. Performance des modèles
-Évaluer les performances des modèles sur données labo et réelles :
-- Métriques : Précision, RMSE, etc.
-- Les performances sont-elles comparables entre les deux contextes ?
+- Évaluer les performances des modèles sur les données laboratoire et réelles.
+- Métriques utilisées : Précision, RMSE, etc.
+- Vérifier si les performances sont comparables entre les deux contextes.
 
 ## Contact
 
