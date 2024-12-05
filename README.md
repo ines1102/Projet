@@ -23,16 +23,16 @@ Le script preprocessing.py permet de :
 - Sauvegarder les segments et labels : Les segments EEG et les labels PERCLOS sont sauvegardés sous forme de fichiers .pkl.
 
 **feature_extraction.py :**
-Le script feature_extraction.py est utilisé pour extraire des caractéristiques des segments EEG. Ces caractéristiques sont ensuite utilisées pour entraîner des modèles de machine learning.
+- Le script feature_extraction.py est utilisé pour extraire des caractéristiques des segments EEG. Ces caractéristiques sont ensuite utilisées pour entraîner des modèles de machine learning.
 
 **model_training.py :**
-Le script model_training.py permet d’entraîner et de valider des modèles sur les caractéristiques extraites des données EEG. Il enregistre le modèle entraîné dans le fichier model.pkl.
+- Le script model_training.py permet d’entraîner et de valider des modèles sur les caractéristiques extraites des données EEG. Il enregistre le modèle entraîné dans le fichier model.pkl.
 
 **matrice_correlation.py**
-Le projet génère diverses visualisations pour aider à l’analyse des données et des modèles, comme la matrice de corrélation des caractéristiques (matrice_correlation.py) et des graphiques des performances des modèles.
+- Le projet génère diverses visualisations pour aider à l’analyse des données et des modèles, comme la matrice de corrélation des caractéristiques (matrice_correlation.py) et des graphiques des performances des modèles.
 
 **analysis.py :**
-Le script analysis.py permet d’analyser les performances des modèles entraînés. Il génère des graphiques et des rapports, tels que la matrice de confusion (matrice_confusion.py) et des visualisations des erreurs résiduelles.
+- Le script analysis.py permet d’analyser les performances des modèles entraînés. Il génère des graphiques et des rapports, tels que la matrice de confusion (matrice_confusion.py) et des visualisations des erreurs résiduelles.
 
 ## Installation
 
@@ -158,24 +158,3 @@ Pour toute question, contactez :
 - **ALEMANY Clarisse**
 - **ASSOUANE Inès**
 - **BOUKHEDRA Khitam**
-
-
-
-
-
-
-Visualisations
-
-Le projet génère plusieurs visualisations utiles pour évaluer les performances du modèle :
-- Matrice de corrélation des caractéristiques (correlation_0.4.png).
-- Erreurs résiduelles (erreurs_residuelles.png).
-- Caractéristiques les plus importantes (features_importants.png).
-- Comparaison des prédictions et des valeurs réelles (predictions_valeurs-reelles.png).
-
-Ces graphiques peuvent être utilisés pour interpréter les résultats et ajuster les paramètres du modèle.
-
-Conclusion
-
-Ce projet permet de traiter et d’analyser les données EEG et les labels PERCLOS pour développer un modèle de classification basé sur les caractéristiques extraites des signaux EEG. Il est conçu pour être facilement extensible et adaptable à de nouvelles données et objectifs de recherche.
-
-N'hésitez pas à personnaliser ou étendre cette documentation en fonction des détails spécifiques de votre projet.
