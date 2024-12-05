@@ -18,7 +18,7 @@ labels_series = pd.Series(labels, name="Subject")
 features_df['Subject'] = labels_series
 
 # Fonction pour calculer la corrélation inter-sujets
-def inter_subject_correlation(features_df):
+def inter_subject_correlation(features_df, threshold=0.4):
     """
     Calcule la corrélation inter-sujets pour chaque feature.
     """
@@ -47,34 +47,43 @@ def inter_subject_correlation(features_df):
         if np.ma.is_masked(mean_corr) or np.isnan(mean_corr):
             mean_corr = 0.0
 
-        inter_corr.append((feature, mean_corr))
-        print(f"Feature: {feature} - Corrélation inter-sujets moyenne : {mean_corr:.2f}")
+        # Si la corrélation est au-dessus du seuil, l'ajouter aux résultats
+        if mean_corr >= threshold:
+            inter_corr.append((feature, mean_corr))
+            print(f"Feature: {feature} - Corrélation inter-sujets moyenne : {mean_corr:.2f} (Retenue)")
+        else:
+            print(f"Feature: {feature} - Corrélation inter-sujets moyenne : {mean_corr:.2f} (Non retenue)")
 
     return inter_corr
 
-# Calcul des corrélations inter-sujets
-inter_subject_results = inter_subject_correlation(features_df)
+# Calcul des corrélations inter-sujets avec un seuil
+threshold_value = 0.4
+inter_subject_results = inter_subject_correlation(features_df, threshold=threshold_value)
 
-# Visualisation des corrélations inter-sujets
-def plot_inter_subject_correlation(inter_corr):
+# Visualisation des corrélations inter-sujets filtrées par le seuil
+def plot_inter_subject_correlation(inter_corr, threshold=0.4):
     """
-    Affiche un graphique des corrélations inter-sujets par feature.
+    Affiche un graphique des corrélations inter-sujets par feature au-dessus du seuil spécifié.
     """
-    features = [item[0] for item in inter_corr]
-    correlations = [item[1] for item in inter_corr]
+    if len(inter_corr) == 0:
+        print("Aucune feature ne dépasse le seuil de corrélation spécifié.")
+        return
 
-    # Filtrer les valeurs nulles ou `nan`
-    valid_features = [features[i] for i in range(len(correlations)) if not np.isnan(correlations[i])]
-    valid_correlations = [correlations[i] for i in range(len(correlations)) if not np.isnan(correlations[i])]
+    # Filtrer uniquement les features qui dépassent le seuil
+    filtered_corr = [(feature, corr) for feature, corr in inter_corr if corr >= threshold]
+
+    features = [item[0] for item in filtered_corr]
+    correlations = [item[1] for item in filtered_corr]
 
     plt.figure(figsize=(12, 6))
-    sns.barplot(x=valid_features, y=valid_correlations, palette='viridis')
+    sns.barplot(x=features, y=correlations, palette='viridis')
     plt.xticks(rotation=45, ha='right')
-    plt.title("Corrélation inter-sujets par feature")
+    plt.title(f"Corrélation inter-sujets par feature (Seuil ≥ {threshold_value})")
     plt.ylabel("Corrélation moyenne")
     plt.xlabel("Features")
+    plt.ylim(0, 1)  # Fixer l'axe des ordonnées pour éviter des valeurs négatives
     plt.tight_layout()
     plt.show()
 
-# Afficher les résultats
-plot_inter_subject_correlation(inter_subject_results)
+# Afficher les résultats filtrés
+plot_inter_subject_correlation(inter_subject_results, threshold=threshold_value)
