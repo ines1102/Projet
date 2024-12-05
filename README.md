@@ -152,6 +152,12 @@ Voici l'organisation des fichiers et dossiers du projet :
 - Métriques utilisées : Précision, RMSE, etc.
 - Vérifier si les performances sont comparables entre les deux contextes.
 
+### 3. Visualisation des Corrélations des Caractéristiques
+- La matrice de corrélation des caractéristiques est sauvegardée dans `Github/Projet/correlation_0.4.png`. Elle montre la corrélation des caractéristiques extraites avec un seuil de 0.4, ce qui vous permet de mieux comprendre les relations entre les différentes caractéristiques.
+
+### 4. Visualisation des Caractéristiques Importantes
+- Le graphique des caractéristiques les plus importantes pour les modèles est sauvegardé sous `Github/Projet/features_importants.png`. Ce graphique peut vous aider à comprendre les caractéristiques les plus pertinentes pour prédire la fatigue.
+
 ## Contact
 
 Pour toute question, contactez :

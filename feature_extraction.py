@@ -1,64 +1,69 @@
 import numpy as np
+import mne
+from scipy.stats import pearsonr
 import pickle
-from scipy.stats import skew, kurtosis
-import argparse
 import os
 
 def extract_features(segments):
-    """
-    Extrait les caractéristiques temporelles et fréquentielles des segments EEG.
-    """
+    # Exemple d'extraction de caractéristiques simples : moyenne et variance pour chaque segment
     features = []
     for segment in segments:
-        # Caractéristiques temporelles : moyenne, variance, asymétrie, aplatissement
-        mean = np.mean(segment, axis=1)
-        variance = np.var(segment, axis=1)
-        skewness = skew(segment, axis=1)
-        kurt = kurtosis(segment, axis=1)
-
-        # Caractéristiques fréquentielles : puissance dans les bandes alpha et beta
-        fft_vals = np.fft.rfft(segment, axis=1)
-        fft_freqs = np.fft.rfftfreq(segment.shape[1], 1/300)  # Fréquence d'échantillonnage de 300 Hz
-
-        alpha_band = (8 <= fft_freqs) & (fft_freqs <= 13)
-        beta_band = (14 <= fft_freqs) & (fft_freqs <= 30)
-
-        alpha_power = np.sum(np.abs(fft_vals[:, alpha_band])**2, axis=1)
-        beta_power = np.sum(np.abs(fft_vals[:, beta_band])**2, axis=1)
-
-        # Concaténation des caractéristiques
-        feature_vector = np.concatenate([mean, variance, skewness, kurt, alpha_power, beta_power])
-        features.append(feature_vector)
-
+        # Moyenne et variance de chaque segment EEG pour chaque canal
+        mean_features = np.mean(segment, axis=1)
+        var_features = np.var(segment, axis=1)
+        features.append(np.concatenate([mean_features, var_features]))
+    
     return np.array(features)
 
-def process_features(input_path, output_path):
-    """
-    Charge les segments EEG et labels, extrait les caractéristiques, et sauvegarde les résultats.
-    """
-    # Création du dossier de sortie si nécessaire
-    if not os.path.exists(os.path.dirname(output_path)):
-        os.makedirs(os.path.dirname(output_path))
+def load_and_process_data(input_folder):
+    all_segments = []
+    for filename in os.listdir(input_folder):
+        if filename.endswith('.pkl'):
+            with open(os.path.join(input_folder, filename), 'rb') as f:
+                segments, labels = pickle.load(f)
+                all_segments.append(segments)
+    return np.concatenate(all_segments, axis=0)
 
-    # Chargement des segments EEG et des labels
-    with open(input_path, 'rb') as f:
-        segments, labels = pickle.load(f)
+def compute_correlation_matrix(features):
+    # Calcul de la matrice de corrélation entre toutes les caractéristiques
+    corr_matrix = np.corrcoef(features, rowvar=False)
+    return corr_matrix
 
-    print(f"Extraction des caractéristiques pour {len(segments)} segments...")
-    features = extract_features(segments)
+def filter_features_based_on_correlation(features, correlation_matrix, threshold=0.4):
+    # Garder les caractéristiques dont la corrélation est >= seuil
+    selected_features = []
+    num_features = features.shape[1]
+    
+    for i in range(num_features):
+        for j in range(i + 1, num_features):
+            if abs(correlation_matrix[i, j]) >= threshold:
+                if i not in selected_features:
+                    selected_features.append(i)
+                if j not in selected_features:
+                    selected_features.append(j)
+    
+    return features[:, selected_features]
 
-    # Sauvegarde des caractéristiques et des labels
-    with open(output_path, 'wb') as f:
-        pickle.dump((features, labels), f)
+def main(input_folder, output_folder):
+    # Charger les segments EEG
+    all_segments = load_and_process_data(input_folder)
 
-    print(f"Caractéristiques sauvegardées dans {output_path}")
+    # Extraire les caractéristiques
+    features = extract_features(all_segments)
+
+    # Calculer la matrice de corrélation
+    corr_matrix = compute_correlation_matrix(features)
+
+    # Filtrer les caractéristiques en fonction de la corrélation
+    filtered_features = filter_features_based_on_correlation(features, corr_matrix, threshold=0.4)
+
+    # Sauvegarder les caractéristiques filtrées
+    output_file = os.path.join(output_folder, "filtered_features.pkl")
+    with open(output_file, 'wb') as f:
+        pickle.dump(filtered_features, f)
+    print(f"Caractéristiques filtrées sauvegardées dans {output_file}")
 
 if __name__ == "__main__":
-    # Gestion des arguments en ligne de commande
-    parser = argparse.ArgumentParser(description="Extraction des caractéristiques EEG")
-    parser.add_argument('--input', type=str, required=True, help="Chemin du fichier d'entrée (segments EEG)")
-    parser.add_argument('--output', type=str, required=True, help="Chemin du fichier de sortie (caractéristiques)")
-    args = parser.parse_args()
-
-    # Exécution de l'extraction des caractéristiques
-    process_features(args.input, args.output)
+    input_folder = "processed/"  # Dossier contenant les fichiers de segments traités
+    output_folder = "features/"  # Dossier où les caractéristiques filtrées seront sauvegardées
+    main(input_folder, output_folder)

@@ -6,14 +6,16 @@ import argparse
 import pickle
 
 def load_and_filter_eeg(file_path):
-    print(f"Chargement du fichier EEG: {file_path}")
-    # Chargement des données EEG
-    raw = mne.io.read_raw_edf(file_path, preload=True)
-    print(f"Nombre d'échantillons dans le fichier {file_path}: {raw.n_times}")
-    # Filtrage (notch et passe-bande 1-50 Hz)
-    raw.notch_filter(freqs=50)
-    raw.filter(1, 50)
-    return raw
+    try:
+        print(f"Chargement du fichier EEG: {file_path}")
+        raw = mne.io.read_raw_edf(file_path, preload=True)
+        print(f"Nombre d'échantillons dans le fichier {file_path}: {raw.n_times}")
+        raw.notch_filter(freqs=50)
+        raw.filter(1, 50)
+        return raw
+    except Exception as e:
+        print(f"Erreur lors du chargement du fichier {file_path}: {e}")
+        return None
 
 def segment_data(raw, window_size=3, overlap=0.5):
     fs = raw.info['sfreq']
@@ -27,30 +29,36 @@ def segment_data(raw, window_size=3, overlap=0.5):
     print(f"Nombre total d'échantillons: {data.shape[1]}")
     
     segments = []
+    timestamps = []  # Liste des timestamps de chaque segment
     for start in range(0, data.shape[1] - window_samples + 1, step_samples):
         segment = data[:, start:start + window_samples]
+        segment_time = times[start]  # Correction ici, accéder avec un seul indice
         segments.append(segment)
+        timestamps.append(segment_time)
     
     print(f"Nombre de segments extraits: {len(segments)}")
-    return np.array(segments)
+    return np.array(segments), np.array(timestamps)
 
-def associate_with_perclos(segments, perclos_file):
-    print(f"Chargement du fichier PERCLOS: {perclos_file}")
-    perclos_data = scipy.io.loadmat(perclos_file)['perclos']
-    perclos_data = perclos_data.flatten()
+def associate_with_perclos(segments, timestamps, perclos_file):
+    try:
+        print(f"Chargement du fichier PERCLOS: {perclos_file}")
+        perclos_data = scipy.io.loadmat(perclos_file)['perclos']
+        perclos_data = perclos_data.flatten()
 
-    print(f"Nombre de labels PERCLOS: {len(perclos_data)}")
+        perclos_timestamps = np.linspace(0, len(perclos_data) / 10, len(perclos_data))
 
-    # Associer chaque segment avec le label PERCLOS correspondant
-    labels = []
-    for i in range(len(segments)):
-        labels.append(perclos_data[i % len(perclos_data)])
+        labels = []
+        for segment_time in timestamps:
+            idx = np.argmin(np.abs(perclos_timestamps - segment_time))  
+            labels.append(perclos_data[idx])
 
-    print(f"Nombre de labels associés: {len(labels)}")
-    return np.array(labels)
+        print(f"Nombre de labels associés: {len(labels)}")
+        return np.array(labels)
+    except Exception as e:
+        print(f"Erreur lors de l'association des labels PERCLOS: {e}")
+        return []
 
 def process_data(lab_eeg_path, lab_perclos_path, real_eeg_path, real_perclos_path, output_folder):
-    # Création du dossier de sortie si nécessaire
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
 
@@ -65,37 +73,35 @@ def process_data(lab_eeg_path, lab_perclos_path, real_eeg_path, real_perclos_pat
                 eeg_file_path = os.path.join(eeg_folder, filename)
                 perclos_file_path = os.path.join(perclos_folder, filename.replace('.edf', '.mat'))
                 
-                # Vérification de l'existence du fichier PERCLOS correspondant
                 if not os.path.exists(perclos_file_path):
-                    print(f"Warning: Le fichier PERCLOS correspondant pour {filename} est introuvable.")
+                    print(f"Warning: Le fichier PERCLOS pour {filename} est manquant.")
                     continue
                 
                 raw = load_and_filter_eeg(eeg_file_path)
-                segments = segment_data(raw)
-                
-                if len(segments) == 0:
-                    print(f"Warning: Aucun segment n'a été extrait pour le fichier {filename}.")
+                if raw is None:
                     continue
                 
-                labels = associate_with_perclos(segments, perclos_file_path)
+                segments, timestamps = segment_data(raw)
+                if len(segments) == 0:
+                    print(f"Warning: Aucun segment extrait pour {filename}.")
+                    continue
+                
+                labels = associate_with_perclos(segments, timestamps, perclos_file_path)
+                if len(labels) == 0:
+                    print(f"Warning: Aucun label associé pour {filename}.")
+                    continue
                 
                 segments_all.extend(segments)
                 labels_all.extend(labels)
         
-        # Vérification du nombre de segments avant la sauvegarde
         print(f"Nombre total de segments pour {data_type}: {len(segments_all)}")
         print(f"Nombre total de labels pour {data_type}: {len(labels_all)}")
 
-        # Sauvegarde des segments et des labels dans un fichier .pkl
         output_path = os.path.join(output_folder, f"{data_type}_segments.pkl")
-
-        print(f"Vérification avant sauvegarde - Nombre total de segments: {len(segments_all)}, Nombre total de labels: {len(labels_all)}")
-
         with open(output_path, 'wb') as f:
             pickle.dump((segments_all, labels_all), f)
 
         print(f"Données sauvegardées dans {output_path}")
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Prétraitement des données EEG et PERCLOS")

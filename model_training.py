@@ -1,70 +1,57 @@
-import os
 import pickle
-import argparse
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import mean_squared_error
 import json
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.preprocessing import StandardScaler
+import matplotlib.pyplot as plt
 
-def train_and_evaluate(train_path, test_path, output_path):
-    """
-    Charge les données d'entraînement et de test, entraîne un modèle RandomForest,
-    évalue ses performances et sauvegarde les résultats ainsi que le modèle.
-    """
-    # Charger les caractéristiques et labels pour l'entraînement
-    print("Chargement des données d'entraînement...")
-    with open(train_path, 'rb') as f:
-        X_train, y_train = pickle.load(f)
-    
-    # Charger les caractéristiques et labels pour le test
-    print("Chargement des données de test...")
-    with open(test_path, 'rb') as f:
-        X_test, y_test = pickle.load(f)
-    
-    # Vérification des dimensions des données
-    if X_train.shape[1] != X_test.shape[1]:
-        raise ValueError("Le nombre de caractéristiques dans les données d'entraînement et de test doit être identique.")
-    
-    # Entraînement du modèle
-    print("Entraînement du modèle RandomForest...")
-    model = RandomForestRegressor(n_estimators=100, random_state=42)
-    model.fit(X_train, y_train)
+# Charger les caractéristiques
+with open("features/lab_features.pkl", "rb") as f:
+    features, labels = pickle.load(f)
 
-    # Évaluation sur les données de test
-    print("Évaluation du modèle sur les données de test...")
-    predictions = model.predict(X_test)
-    mse = mean_squared_error(y_test, predictions)
-    print(f"Mean Squared Error : {mse:.4f}")
+# Normaliser les caractéristiques
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(features)
 
-    results = {
-        'mean_squared_error': mse,
-    }
-    
-    # Création du dossier de sortie si nécessaire
-    output_dir = os.path.dirname(output_path)
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
+# Séparer les données en ensembles d'entraînement et de test
+X_train, X_test, y_train, y_test = train_test_split(X_scaled, labels, test_size=0.2, random_state=42)
 
-    # Sauvegarder les résultats dans un fichier JSON
-    results_path = os.path.join(output_dir, "results.json")
-    with open(results_path, 'w') as f:
-        json.dump(results, f)
-    print(f"Résultats sauvegardés dans {results_path}")
+# Entraîner le modèle
+model = RandomForestRegressor(random_state=42)
+model.fit(X_train, y_train)
 
-    # Sauvegarder le modèle entraîné
-    model_path = os.path.join(output_dir, "model.pkl")
-    with open(model_path, 'wb') as file:
-        pickle.dump(model, file)
+# Prédictions
+y_pred = model.predict(X_test)
 
-    print(f"Modèle sauvegardé dans {model_path}")
+# Calculer la MSE
+mse = mean_squared_error(y_test, y_pred)
+print(f"Mean Squared Error (MSE): {mse}")
 
+# Calculer le coefficient de détermination R^2
+r2 = r2_score(y_test, y_pred)
+print(f"R^2: {r2}")
 
-if __name__ == '__main__':
-    # Gestion des arguments
-    parser = argparse.ArgumentParser(description="Entraînement et évaluation d'un modèle RandomForest.")
-    parser.add_argument('--train', type=str, required=True, help="Chemin du fichier des données d'entraînement (Pickle)")
-    parser.add_argument('--test', type=str, required=True, help="Chemin du fichier des données de test (Pickle)")
-    parser.add_argument('--output', type=str, required=True, help="Dossier de sortie pour les résultats et le modèle")
-    args = parser.parse_args()
-    
-    # Appel de la fonction principale
-    train_and_evaluate(args.train, args.test, args.output)
+# Sauvegarder le modèle
+with open("results/model.pkl", "wb") as f:
+    pickle.dump(model, f)
+
+# Sauvegarder les résultats
+results = {
+    "mean_squared_error": mse,
+    "r2_score": r2,
+    "y_true": y_test.tolist(),  # Convertir en liste pour JSON
+    "y_pred": y_pred.tolist()   # Convertir en liste pour JSON
+}
+
+with open("results/results.json", "w") as f:
+    json.dump(results, f, indent=4)
+
+print("Résultats sauvegardés dans 'results.json'")
+
+# Visualisation des résultats
+plt.scatter(y_test, y_pred)
+plt.xlabel('Valeurs réelles')
+plt.ylabel('Prédictions')
+plt.title('Comparaison entre valeurs réelles et prédictions')
+plt.show()
