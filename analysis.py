@@ -13,8 +13,9 @@ def analyze_features(labo_path, real_path):
     # Comparaison des distributions
     for i in range(labo_features.shape[1]):
         plt.figure()
-        sns.kdeplot(labo_features[:, i], label='Labo', shade=True)
-        sns.kdeplot(real_features[:, i], label='Réel', shade=True)
+        sns.kdeplot(labo_features[:, i], label='Labo', fill=True)
+        sns.kdeplot(real_features[:, i], label='Réel', fill=True)
+
         plt.title(f'Caractéristique {i+1}')
         plt.legend()
         plt.show()

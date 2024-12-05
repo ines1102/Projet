@@ -14,7 +14,7 @@ def extract_features(segments):
 
         # Caractéristiques fréquentielles : puissance dans les bandes alpha et beta
         fft_vals = np.fft.rfft(segment, axis=1)
-        fft_freqs = np.fft.rfftfreq(segment.shape[1], 1/100)  # Exemple de fréquence d'échantillonnage
+        fft_freqs = np.fft.rfftfreq(segment.shape[1], 1/300)  # Exemple avec fréquence d'échantillonnage de 300 Hz
 
         alpha_band = (8 <= fft_freqs) & (fft_freqs <= 13)
         beta_band = (14 <= fft_freqs) & (fft_freqs <= 30)
@@ -32,15 +32,17 @@ def process_features(input_path, output_path):
     with open(input_path, 'rb') as f:
         segments, labels = pickle.load(f)
     
+    print(f"Extraction des caractéristiques pour {len(segments)} segments...")
     features = extract_features(segments)
     
     with open(output_path, 'wb') as f:
         pickle.dump((features, labels), f)
+    print(f"Caractéristiques sauvegardées dans {output_path}")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', type=str, required=True, help="Fichier d'entrée des segments")
     parser.add_argument('--output', type=str, required=True, help="Fichier de sortie des caractéristiques")
     args = parser.parse_args()
-    c
+    
     process_features(args.input, args.output)
