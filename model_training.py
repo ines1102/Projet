@@ -16,8 +16,9 @@ def train_and_evaluate(train_path, test_path, output_path):
     
     # Entraînement du modèle
     print("Entraînement du modèle...")
-    model = RandomForestRegressor(n_estimators=500, random_state=42)
+    model = RandomForestRegressor(n_estimators=100, random_state=42)
     model.fit(X_train, y_train)
+
     
     # Évaluation sur les données de test
     print("Évaluation du modèle sur les données de test...")
@@ -37,6 +38,14 @@ def train_and_evaluate(train_path, test_path, output_path):
     with open(output_path, 'w') as f:
         json.dump(results, f)
     print(f"Résultats sauvegardés dans {output_path}")
+
+    # Sauvegarder le modèle entraîné
+    model_path = "results/model.pkl"
+    with open(model_path, 'wb') as file:
+        pickle.dump(model, file)
+
+    print(f"Modèle sauvegardé dans {model_path}")
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
